@@ -12,13 +12,13 @@
 
 #include "math/vector.h"
 #include "math/matrix.h"
-#include "mve/defines.h"
-#include "mve/camera.h"
-#include "mve/image.h"
-#include "mve/mesh.h"
+#include "core/defines.h"
+#include "core/camera.h"
+#include "core/image.h"
+#include "core/mesh.h"
 
-MVE_NAMESPACE_BEGIN
-MVE_IMAGE_NAMESPACE_BEGIN
+CORE_NAMESPACE_BEGIN
+CORE_IMAGE_NAMESPACE_BEGIN
 
 /**
  * Algorithm to clean small confident islands in the depth maps.
@@ -61,15 +61,15 @@ depthmap_bilateral_filter (FloatImage::ConstPtr dm,
 template <typename T>
 void
 depthmap_convert_conventions (typename Image<T>::Ptr dm,
-    math::Matrix3f const& invproj, bool to_mve);
+    math::Matrix3f const& invproj, bool to_core);
 
-MVE_IMAGE_NAMESPACE_END
-MVE_NAMESPACE_END
+CORE_IMAGE_NAMESPACE_END
+CORE_NAMESPACE_END
 
 /* ---------------------------------------------------------------- */
 
-MVE_NAMESPACE_BEGIN
-MVE_GEOM_NAMESPACE_BEGIN
+CORE_NAMESPACE_BEGIN
+CORE_GEOM_NAMESPACE_BEGIN
 
 /**
  * Function that calculates the pixel footprint (pixel width)
@@ -103,7 +103,7 @@ pixel_3dpos (std::size_t x, std::size_t y, float depth,
  */
 TriangleMesh::Ptr
 depthmap_triangulate (FloatImage::ConstPtr dm, math::Matrix3f const& invproj,
-    float dd_factor = 5.0f, mve::Image<unsigned int>* vids = nullptr);
+    float dd_factor = 5.0f, core::Image<unsigned int>* vids = nullptr);
 
 /**
  * A helper function that triangulates the given depth map with optional
@@ -149,18 +149,18 @@ depthmap_mesh_confidences (TriangleMesh::Ptr mesh, int iterations = 3);
 void
 depthmap_mesh_peeling (TriangleMesh::Ptr mesh, int iterations = 1);
 
-MVE_GEOM_NAMESPACE_END
-MVE_NAMESPACE_END
+CORE_GEOM_NAMESPACE_END
+CORE_NAMESPACE_END
 
 /* ------------------------- Implementation ----------------------- */
 
-MVE_NAMESPACE_BEGIN
-MVE_IMAGE_NAMESPACE_BEGIN
+CORE_NAMESPACE_BEGIN
+CORE_IMAGE_NAMESPACE_BEGIN
 
 template <typename T>
 inline void
 depthmap_convert_conventions (typename Image<T>::Ptr dm,
-    math::Matrix3f const& invproj, bool to_mve)
+    math::Matrix3f const& invproj, bool to_core)
 {
     std::size_t w = dm->width();
     std::size_t h = dm->height();
@@ -174,11 +174,11 @@ depthmap_convert_conventions (typename Image<T>::Ptr dm,
             // Measure length of viewing ray
             double len = px.norm();
             // Either divide or multiply with the length
-            dm->at(pos) *= (to_mve ? len : 1.0 / len);
+            dm->at(pos) *= (to_core ? len : 1.0 / len);
         }
 }
 
-MVE_IMAGE_NAMESPACE_END
-MVE_NAMESPACE_END
+CORE_IMAGE_NAMESPACE_END
+CORE_NAMESPACE_END
 
 #endif /* MVE_DEPTHMAP_HEADER */

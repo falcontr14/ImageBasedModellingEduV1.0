@@ -26,6 +26,7 @@ CORE_NAMESPACE_BEGIN
 class MeshBase
 {
 public:
+    // shared pointer
     typedef std::shared_ptr<MeshBase> Ptr;
     typedef std::shared_ptr<MeshBase const> ConstPtr;
 
@@ -92,8 +93,13 @@ public:
     typedef std::shared_ptr<TriangleMesh> Ptr;
     typedef std::shared_ptr<TriangleMesh const> ConstPtr;
 
+    // normals
     typedef std::vector<math::Vec3f> NormalList;
+
+    // texcoords
     typedef std::vector<math::Vec2f> TexCoordList;
+
+    // vertex indeices for facets
     typedef std::vector<VertexID> FaceList;
 
     typedef std::vector<bool> DeleteList;
@@ -107,26 +113,31 @@ public:
 
     /** Returns the vertex normals. */
     NormalList const& get_vertex_normals (void) const;
+
     /** Returns the vertex normals. */
     NormalList& get_vertex_normals (void);
 
     /** Returns the vectex texture coordinates. */
     TexCoordList const& get_vertex_texcoords (void) const;
+
     /** Returns the vectex texture coordinates. */
     TexCoordList& get_vertex_texcoords (void);
 
     /** Returns the triangle indices. */
     FaceList const& get_faces (void) const;
+
     /** Returns the triangle indices. */
     FaceList& get_faces (void);
 
     /** Returns the face normals. */
     NormalList const& get_face_normals (void) const;
+
     /** Returns the face normals. */
     NormalList& get_face_normals (void);
 
     /** Returns the face colors. */
     ColorList const& get_face_colors (void) const;
+
     /** Returns the face colors. */
     ColorList& get_face_colors (void);
 
@@ -171,11 +182,20 @@ public:
     std::size_t get_byte_size (void) const;
 
 protected:
+
+    // vertex normals
     NormalList vertex_normals;
+
+    // vertex texcoords
     TexCoordList vertex_texcoords;
 
+    // facets
     FaceList faces;
+
+    // facet normals
     NormalList face_normals;
+
+    // facet colors
     ColorList face_colors;
 
 protected:
@@ -186,13 +206,11 @@ protected:
 /* ---------------------------------------------------------------- */
 
 inline
-MeshBase::MeshBase (void)
-{
+MeshBase::MeshBase (void) {
 }
 
 inline
-MeshBase::~MeshBase (void)
-{
+MeshBase::~MeshBase (void) {
 }
 
 inline MeshBase::VertexList const&
@@ -202,8 +220,7 @@ MeshBase::get_vertices (void) const
 }
 
 inline MeshBase::VertexList&
-MeshBase::get_vertices (void)
-{
+MeshBase::get_vertices (void) {
     return this->vertices;
 }
 

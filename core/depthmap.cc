@@ -14,12 +14,12 @@
 
 #include "math/defines.h"
 #include "math/matrix.h"
-#include "mve/mesh_info.h"
-#include "mve/depthmap.h"
-#include "mve/mesh_tools.h"
+#include "core/mesh_info.h"
+#include "core/depthmap.h"
+#include "core/mesh_tools.h"
 
-MVE_NAMESPACE_BEGIN
-MVE_IMAGE_NAMESPACE_BEGIN
+CORE_NAMESPACE_BEGIN
+CORE_IMAGE_NAMESPACE_BEGIN
 
 void
 depthmap_cleanup_grow (FloatImage::ConstPtr dm, FloatImage::Ptr ret,
@@ -127,13 +127,13 @@ depthmap_confidence_clean (FloatImage::Ptr dm, FloatImage::ConstPtr cm)
             dm->at(i, 0) = 0.0f;
 }
 
-MVE_IMAGE_NAMESPACE_END
-MVE_NAMESPACE_END
+CORE_IMAGE_NAMESPACE_END
+CORE_NAMESPACE_END
 
 /* ---------------------------------------------------------------- */
 
-MVE_NAMESPACE_BEGIN
-MVE_GEOM_NAMESPACE_BEGIN
+CORE_NAMESPACE_BEGIN
+CORE_GEOM_NAMESPACE_BEGIN
 
 float
 pixel_footprint (std::size_t x, std::size_t y, float depth,
@@ -158,14 +158,14 @@ pixel_3dpos (std::size_t x, std::size_t y, float depth,
 /* ---------------------------------------------------------------- */
 
 void
-dm_make_triangle (TriangleMesh* mesh, mve::Image<unsigned int>& vidx,
+dm_make_triangle (TriangleMesh* mesh, core::Image<unsigned int>& vidx,
     FloatImage const* dm, math::Matrix3f const& invproj,
     std::size_t i, int* tverts)
 {
     int const width = vidx.width();
     //int const height = vidx.height();
-    mve::TriangleMesh::VertexList& verts(mesh->get_vertices());
-    mve::TriangleMesh::FaceList& faces(mesh->get_faces());
+    core::TriangleMesh::VertexList& verts(mesh->get_vertices());
+    core::TriangleMesh::FaceList& faces(mesh->get_faces());
 
     for (int j = 0; j < 3; ++j)
     {
@@ -209,7 +209,7 @@ dm_is_depthdisc (float* widths, float* depths, float dd_factor, int i1, int i2)
 
 TriangleMesh::Ptr
 depthmap_triangulate (FloatImage::ConstPtr dm, math::Matrix3f const& invproj,
-    float dd_factor, mve::Image<unsigned int>* vids)
+    float dd_factor, core::Image<unsigned int>* vids)
 {
     if (dm == nullptr)
         throw std::invalid_argument("Null depthmap given");
@@ -221,7 +221,7 @@ depthmap_triangulate (FloatImage::ConstPtr dm, math::Matrix3f const& invproj,
     TriangleMesh::Ptr mesh(TriangleMesh::create());
 
     /* Generate image that maps image pixels to vertex IDs. */
-    mve::Image<unsigned int> vidx(width, height, 1);
+    core::Image<unsigned int> vidx(width, height, 1);
     vidx.fill(MATH_MAX_UINT);
 
     /* Iterate over 2x2-blocks in the depthmap and create triangles. */
@@ -332,16 +332,16 @@ depthmap_triangulate (FloatImage::ConstPtr dm, ByteImage::ConstPtr ci,
         throw std::invalid_argument("Color image dimension mismatch");
 
     /* Triangulate depth map. */
-    mve::Image<unsigned int> vids;
-    mve::TriangleMesh::Ptr mesh;
-    mesh = mve::geom::depthmap_triangulate(dm, invproj, dd_factor, &vids);
+    core::Image<unsigned int> vids;
+    core::TriangleMesh::Ptr mesh;
+    mesh = core::geom::depthmap_triangulate(dm, invproj, dd_factor, &vids);
 
     if (ci == nullptr)
         return mesh;
 
     /* Use vertex index mapping to color the mesh. */
-    mve::TriangleMesh::ColorList& colors(mesh->get_vertex_colors());
-    mve::TriangleMesh::VertexList const& verts(mesh->get_vertices());
+    core::TriangleMesh::ColorList& colors(mesh->get_vertex_colors());
+    core::TriangleMesh::VertexList const& verts(mesh->get_vertices());
     colors.resize(verts.size());
 
     int num_pixel = vids.get_pixel_amount();
@@ -380,13 +380,13 @@ depthmap_triangulate (FloatImage::ConstPtr dm, ByteImage::ConstPtr ci,
     /* Triangulate depth map. */
     math::Matrix3f invproj;
     cam.fill_inverse_calibration(*invproj, dm->width(), dm->height());
-    mve::TriangleMesh::Ptr mesh;
-    mesh = mve::geom::depthmap_triangulate(dm, ci, invproj, dd_factor);
+    core::TriangleMesh::Ptr mesh;
+    mesh = core::geom::depthmap_triangulate(dm, ci, invproj, dd_factor);
 
     /* Transform mesh to world coordinates. */
     math::Matrix4f ctw;
     cam.fill_cam_to_world(*ctw);
-    mve::geom::mesh_transform(mesh, ctw);
+    core::geom::mesh_transform(mesh, ctw);
     mesh->recalc_normals(false, true); // Remove this?
 
     return mesh;
@@ -506,11 +506,12 @@ depthmap_mesh_confidences (TriangleMesh::Ptr mesh, int iterations)
 
     /* Find boundary vertices and remember them. */
     std::vector<std::size_t> vidx;
-    MeshInfo mesh_info(mesh);
+    VertexInfoList vinfo(mesh);
 
-    for (std::size_t i = 0; i < mesh_info.size(); ++i)
+    for (std::size_t i = 0; i < vinfo.size(); ++i)
     {
-        if (mesh_info[i].vclass == MeshInfo::VERTEX_CLASS_BORDER)
+        MeshVertexInfo const& info(vinfo[i]);
+        if (info.vclass == VERTEX_CLASS_BORDER)
             vidx.push_back(i);
     }
 
@@ -530,7 +531,7 @@ depthmap_mesh_confidences (TriangleMesh::Ptr mesh, int iterations)
         std::swap(vidx, cvidx);
         for (std::size_t i = 0; i < cvidx.size(); ++i)
         {
-            MeshInfo::VertexInfo info = mesh_info[cvidx[i]];
+            MeshVertexInfo info = vinfo[cvidx[i]];
             for (std::size_t j = 0; j < info.verts.size(); ++j)
                 if (confs[info.verts[j]] == 1.0f)
                     vidx.push_back(info.verts[j]);
@@ -559,11 +560,11 @@ depthmap_mesh_peeling (TriangleMesh::Ptr mesh, int iterations)
     /* Iteratively invalidate triangles at the boundary. */
     for (int iter = 0; iter < iterations; ++iter)
     {
-        MeshInfo mesh_info(mesh);
-        for (std::size_t i = 0; i < mesh_info.size(); ++i)
+        VertexInfoList::Ptr vinfo(VertexInfoList::create(mesh));
+        for (std::size_t i = 0; i < vinfo->size(); ++i)
         {
-            MeshInfo::VertexInfo const& info(mesh_info[i]);
-            if (info.vclass == MeshInfo::VERTEX_CLASS_BORDER)
+            MeshVertexInfo const& info(vinfo->at(i));
+            if (info.vclass == VERTEX_CLASS_BORDER)
                 for (std::size_t j = 0; j < info.faces.size(); ++j)
                     for (int k = 0; k < 3; ++k)
                     {
@@ -578,5 +579,5 @@ depthmap_mesh_peeling (TriangleMesh::Ptr mesh, int iterations)
     math::algo::vector_clean(delete_list, &faces);
 }
 
-MVE_GEOM_NAMESPACE_END
-MVE_NAMESPACE_END
+CORE_GEOM_NAMESPACE_END
+CORE_NAMESPACE_END

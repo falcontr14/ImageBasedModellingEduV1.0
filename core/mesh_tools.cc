@@ -18,11 +18,11 @@
 
 #include "math/algo.h"
 #include "math/vector.h"
-#include "mve/mesh_info.h"
-#include "mve/mesh_tools.h"
+#include "core/mesh_info.h"
+#include "core/mesh_tools.h"
 
-MVE_NAMESPACE_BEGIN
-MVE_GEOM_NAMESPACE_BEGIN
+CORE_NAMESPACE_BEGIN
+CORE_GEOM_NAMESPACE_BEGIN
 
 /** for-each functor: homogenous matrix-vector multiplication. */
 template <typename T, int D>
@@ -43,14 +43,14 @@ struct foreach_hmatrix_mult
 /* ---------------------------------------------------------------- */
 
 void
-mesh_transform (mve::TriangleMesh::Ptr mesh, math::Matrix3f const& rot)
+mesh_transform (core::TriangleMesh::Ptr mesh, math::Matrix3f const& rot)
 {
     if (mesh == nullptr)
         throw std::invalid_argument("Null mesh given");
 
-    mve::TriangleMesh::VertexList& verts(mesh->get_vertices());
-    mve::TriangleMesh::NormalList& vnorm(mesh->get_vertex_normals());
-    mve::TriangleMesh::NormalList& fnorm(mesh->get_face_normals());
+    core::TriangleMesh::VertexList& verts(mesh->get_vertices());
+    core::TriangleMesh::NormalList& vnorm(mesh->get_vertex_normals());
+    core::TriangleMesh::NormalList& fnorm(mesh->get_face_normals());
 
     math::algo::foreach_matrix_mult<math::Matrix3f, math::Vec3f> func(rot);
     std::for_each(verts.begin(), verts.end(), func);
@@ -66,9 +66,9 @@ mesh_transform (TriangleMesh::Ptr mesh, math::Matrix4f const& trans)
     if (mesh == nullptr)
         throw std::invalid_argument("Null mesh given");
 
-    mve::TriangleMesh::VertexList& verts(mesh->get_vertices());
-    mve::TriangleMesh::NormalList& vnorm(mesh->get_vertex_normals());
-    mve::TriangleMesh::NormalList& fnorm(mesh->get_face_normals());
+    core::TriangleMesh::VertexList& verts(mesh->get_vertices());
+    core::TriangleMesh::NormalList& vnorm(mesh->get_vertex_normals());
+    core::TriangleMesh::NormalList& fnorm(mesh->get_face_normals());
 
     foreach_hmatrix_mult<float, 4> vfunc(trans, 1.0f);
     foreach_hmatrix_mult<float, 4> nfunc(trans, 0.0f);
@@ -83,22 +83,22 @@ mesh_transform (TriangleMesh::Ptr mesh, math::Matrix4f const& trans)
 void
 mesh_merge (TriangleMesh::ConstPtr mesh1, TriangleMesh::Ptr mesh2)
 {
-    mve::TriangleMesh::VertexList const& verts1 = mesh1->get_vertices();
-    mve::TriangleMesh::VertexList& verts2 = mesh2->get_vertices();
-    mve::TriangleMesh::ColorList const& color1 = mesh1->get_vertex_colors();
-    mve::TriangleMesh::ColorList& color2 = mesh2->get_vertex_colors();
-    mve::TriangleMesh::ConfidenceList const& confs1 = mesh1->get_vertex_confidences();
-    mve::TriangleMesh::ConfidenceList& confs2 = mesh2->get_vertex_confidences();
-    mve::TriangleMesh::ValueList const& values1 = mesh1->get_vertex_values();
-    mve::TriangleMesh::ValueList& values2 = mesh2->get_vertex_values();
-    mve::TriangleMesh::NormalList const& vnorm1 = mesh1->get_vertex_normals();
-    mve::TriangleMesh::NormalList& vnorm2 = mesh2->get_vertex_normals();
-    mve::TriangleMesh::TexCoordList const& vtex1 = mesh1->get_vertex_texcoords();
-    mve::TriangleMesh::TexCoordList& vtex2 = mesh2->get_vertex_texcoords();
-    mve::TriangleMesh::NormalList const& fnorm1 = mesh1->get_face_normals();
-    mve::TriangleMesh::NormalList& fnorm2 = mesh2->get_face_normals();
-    mve::TriangleMesh::FaceList const& faces1 = mesh1->get_faces();
-    mve::TriangleMesh::FaceList& faces2 = mesh2->get_faces();
+    core::TriangleMesh::VertexList const& verts1 = mesh1->get_vertices();
+    core::TriangleMesh::VertexList& verts2 = mesh2->get_vertices();
+    core::TriangleMesh::ColorList const& color1 = mesh1->get_vertex_colors();
+    core::TriangleMesh::ColorList& color2 = mesh2->get_vertex_colors();
+    core::TriangleMesh::ConfidenceList const& confs1 = mesh1->get_vertex_confidences();
+    core::TriangleMesh::ConfidenceList& confs2 = mesh2->get_vertex_confidences();
+    core::TriangleMesh::ValueList const& values1 = mesh1->get_vertex_values();
+    core::TriangleMesh::ValueList& values2 = mesh2->get_vertex_values();
+    core::TriangleMesh::NormalList const& vnorm1 = mesh1->get_vertex_normals();
+    core::TriangleMesh::NormalList& vnorm2 = mesh2->get_vertex_normals();
+    core::TriangleMesh::TexCoordList const& vtex1 = mesh1->get_vertex_texcoords();
+    core::TriangleMesh::TexCoordList& vtex2 = mesh2->get_vertex_texcoords();
+    core::TriangleMesh::NormalList const& fnorm1 = mesh1->get_face_normals();
+    core::TriangleMesh::NormalList& fnorm2 = mesh2->get_face_normals();
+    core::TriangleMesh::FaceList const& faces1 = mesh1->get_faces();
+    core::TriangleMesh::FaceList& faces2 = mesh2->get_faces();
 
     verts2.reserve(verts1.size() + verts2.size());
     color2.reserve(color1.size() + color2.size());
@@ -127,11 +127,11 @@ mesh_merge (TriangleMesh::ConstPtr mesh1, TriangleMesh::Ptr mesh2)
 void
 mesh_components (TriangleMesh::Ptr mesh, std::size_t vertex_threshold)
 {
-    MeshInfo mesh_info(mesh);
-    std::size_t const num_vertices = mesh->get_vertices().size();
-    std::vector<int> component_per_vertex(num_vertices, -1);
+    TriangleMesh::VertexList const& verts = mesh->get_vertices();
+    VertexInfoList vinfos(mesh);
+    std::vector<int> component_per_vertex(vinfos.size(), -1);
     int current_component = 0;
-    for (std::size_t i = 0; i < num_vertices; ++i)
+    for (std::size_t i = 0; i < vinfos.size(); ++i)
     {
         /* Start with a vertex that has no component yet. */
         if (component_per_vertex[i] >= 0)
@@ -151,12 +151,12 @@ mesh_components (TriangleMesh::Ptr mesh, std::size_t vertex_threshold)
             component_per_vertex[vid] = current_component;
 
             /* Add all adjacent vertices to queue. */
-            MeshInfo::AdjacentVertices const& adj_verts = mesh_info[vid].verts;
+            MeshVertexInfo::VertexRefList const& adj_verts = vinfos[vid].verts;
             queue.insert(queue.end(), adj_verts.begin(), adj_verts.end());
         }
         current_component += 1;
     }
-    mesh_info.clear();
+    vinfos.clear();
 
     /* Create a list of components and count vertices per component. */
     std::vector<std::size_t> components_size(current_component, 0);
@@ -164,7 +164,7 @@ mesh_components (TriangleMesh::Ptr mesh, std::size_t vertex_threshold)
         components_size[component_per_vertex[i]] += 1;
 
     /* Mark vertices to be deleted if part of a small component. */
-    TriangleMesh::DeleteList delete_list(num_vertices, false);
+    TriangleMesh::DeleteList delete_list(verts.size(), false);
     for (std::size_t i = 0; i < component_per_vertex.size(); ++i)
         if (components_size[component_per_vertex[i]] <= vertex_threshold)
             delete_list[i] = true;
@@ -268,12 +268,12 @@ mesh_delete_unreferenced (TriangleMesh::Ptr mesh)
     if (mesh == nullptr)
         throw std::invalid_argument("Null mesh given");
 
-    MeshInfo mesh_info(mesh);
-    TriangleMesh::DeleteList dlist(mesh_info.size(), false);
+    VertexInfoList vinfos(mesh);
+    TriangleMesh::DeleteList dlist(vinfos.size(), false);
     std::size_t num_deleted = 0;
-    for (std::size_t i = 0; i < mesh_info.size(); ++i)
+    for (std::size_t i = 0; i < vinfos.size(); ++i)
     {
-        if (mesh_info[i].vclass == MeshInfo::VERTEX_CLASS_UNREF)
+        if (vinfos[i].vclass == VERTEX_CLASS_UNREF)
         {
             dlist[i] = true;
             num_deleted += 1;
@@ -284,5 +284,5 @@ mesh_delete_unreferenced (TriangleMesh::Ptr mesh)
     return num_deleted;
 }
 
-MVE_GEOM_NAMESPACE_END
-MVE_NAMESPACE_END
+CORE_GEOM_NAMESPACE_END
+CORE_NAMESPACE_END
